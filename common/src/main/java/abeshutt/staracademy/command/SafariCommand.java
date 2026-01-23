@@ -24,20 +24,23 @@ import static net.minecraft.server.command.CommandManager.literal;
 public class SafariCommand extends Command {
 
     @Override
-    public void register(CommandDispatcher<ServerCommandSource> dispatcher, CommandRegistryAccess access, CommandManager.RegistrationEnvironment environment) {
+    public void register(CommandDispatcher<ServerCommandSource> dispatcher, CommandRegistryAccess access,
+            CommandManager.RegistrationEnvironment environment) {
         dispatcher.register(literal(StarAcademyMod.ID)
                 .then(literal("safari")
-                    .requires(source -> source.hasPermissionLevel(4))
-                    .then(literal("pause")
-                        .executes(this::onPause))
-                    .then(literal("unpause")
-                        .executes(this::onUnpause))
-                    .then(literal("restart")
-                        .executes(this::onRestart))
-                    .then(literal("add_time")
-                        .then(argument("players", EntityArgumentType.players())
-                            .then(argument("time", TimeArgumentType.time(Integer.MIN_VALUE))
-                                .executes(this::onAddTime))))));
+                        .requires(source -> source.hasPermissionLevel(4))
+                        .then(literal("pause")
+                                .executes(this::onPause))
+                        .then(literal("unpause")
+                                .executes(this::onUnpause))
+                        .then(literal("restart")
+                                .executes(this::onRestart))
+                        .then(literal("add_time")
+                                .then(argument("players", EntityArgumentType.players())
+                                        .then(argument("time", TimeArgumentType.time(Integer.MIN_VALUE))
+                                                .executes(this::onAddTime))))
+                        .then(literal("setspawn")
+                                .executes(this::onSetSpawn))));
     }
 
     private int onAddTime(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
@@ -46,7 +49,7 @@ public class SafariCommand extends Command {
 
         SafariData data = ModWorldData.SAFARI.getGlobal(context.getSource().getServer());
 
-        for(ServerPlayerEntity player : players) {
+        for (ServerPlayerEntity player : players) {
             SafariData.Entry entry = data.getOrCreate(player.getUuid());
             entry.setTimeLeft(entry.getTimeLeft() + time);
             context.getSource().sendFeedback(() -> SafariTicketItem.getTimeMessage(player, time, false), true);
@@ -69,17 +72,17 @@ public class SafariCommand extends Command {
     private int onPause(CommandContext<ServerCommandSource> context) {
         SafariData data = ModWorldData.SAFARI.getGlobal(context.getSource().getServer());
 
-        if(data.setPaused(true)) {
+        if (data.setPaused(true)) {
             context.getSource().sendFeedback(() -> {
                 return Text.empty().append(Text.literal("The Safari is now ").formatted(Formatting.GRAY))
                         .append(Text.literal("paused").formatted(Formatting.RED)
-                        .append(Text.literal(".").formatted(Formatting.GRAY)));
+                                .append(Text.literal(".").formatted(Formatting.GRAY)));
             }, true);
         } else {
             context.getSource().sendFeedback(() -> {
                 return Text.empty().append(Text.literal("The Safari is already ").formatted(Formatting.GRAY))
                         .append(Text.literal("paused").formatted(Formatting.RED)
-                        .append(Text.literal(".").formatted(Formatting.GRAY)));
+                                .append(Text.literal(".").formatted(Formatting.GRAY)));
             }, true);
         }
 
@@ -89,20 +92,35 @@ public class SafariCommand extends Command {
     private int onUnpause(CommandContext<ServerCommandSource> context) {
         SafariData data = ModWorldData.SAFARI.getGlobal(context.getSource().getServer());
 
-        if(data.setPaused(false)) {
+        if (data.setPaused(false)) {
             context.getSource().sendFeedback(() -> {
                 return Text.empty().append(Text.literal("The Safari is now ").formatted(Formatting.GRAY))
                         .append(Text.literal("unpaused").formatted(Formatting.GREEN)
-                        .append(Text.literal(".").formatted(Formatting.GRAY)));
+                                .append(Text.literal(".").formatted(Formatting.GRAY)));
             }, true);
         } else {
             context.getSource().sendFeedback(() -> {
                 return Text.empty().append(Text.literal("The Safari is already ").formatted(Formatting.GRAY))
                         .append(Text.literal("unpaused").formatted(Formatting.GREEN)
-                        .append(Text.literal(".").formatted(Formatting.GRAY)));
+                                .append(Text.literal(".").formatted(Formatting.GRAY)));
             }, true);
         }
 
+        return 0;
+    }
+
+    private int onSetSpawn(CommandContext<ServerCommandSource> context) {
+        if (context.getSource().getEntity() instanceof ServerPlayerEntity player) {
+            SafariData data = ModWorldData.SAFARI.getGlobal(context.getSource().getServer());
+            data.setSpawnPoint(new abeshutt.staracademy.world.data.EntityState(player));
+
+            context.getSource().sendFeedback(() -> {
+                return Text.empty()
+                        .append(Text.literal("Safari Spawn Point has been set.").formatted(Formatting.GREEN));
+            }, true);
+        } else {
+            context.getSource().sendError(Text.literal("Only players can execute this command."));
+        }
         return 0;
     }
 

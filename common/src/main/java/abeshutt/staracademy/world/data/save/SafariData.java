@@ -56,6 +56,7 @@ public class SafariData extends WorldData {
     private long lastUpdated;
     private final Map<RegistryKey<World>, Set<BlockPos>> portals;
     private final Map<UUID, Entry> entries;
+    private EntityState spawnPoint;
 
     private SafariConfig lastConfig;
 
@@ -104,20 +105,37 @@ public class SafariData extends WorldData {
         });
     }
 
+    public EntityState getSpawnPoint() {
+        return this.spawnPoint;
+    }
+
+    public void setSpawnPoint(EntityState spawnPoint) {
+        this.spawnPoint = spawnPoint;
+        this.markDirty();
+    }
+
     public void joinSafari(ServerPlayerEntity player) {
         MinecraftServer server = player.getServer();
-        if(server == null) return;
+        if (server == null)
+            return;
         ServerWorld destination = server.getWorld(StarAcademyMod.SAFARI);
 
-        if(destination != null) {
+        if (destination != null) {
             this.getOrCreate(player.getUuid()).setLastState(new EntityState(player));
-            player.tryUsePortal(ModBlocks.SAFARI_PORTAL.get(), player.getBlockPos());
+
+            if (this.spawnPoint != null) {
+                player.teleport(destination, this.spawnPoint.getPosX(), this.spawnPoint.getPosY(),
+                        this.spawnPoint.getPosZ(), this.spawnPoint.getYaw(), this.spawnPoint.getPitch());
+            } else {
+                player.tryUsePortal(ModBlocks.SAFARI_PORTAL.get(), player.getBlockPos());
+            }
         }
     }
 
     public void leaveSafari(ServerPlayerEntity player) {
         MinecraftServer server = player.getServer();
-        if(server == null) return;
+        if (server == null)
+            return;
         player.tryUsePortal(ModBlocks.SAFARI_PORTAL.get(), player.getBlockPos());
     }
 
@@ -127,13 +145,14 @@ public class SafariData extends WorldData {
 
     public void onStart(MinecraftServer server) {
         ServerWorld world = server.getWorld(StarAcademyMod.SAFARI);
-        if(world == null) return;
+        if (world == null)
+            return;
 
-        for(ServerPlayerEntity player : new ArrayList<>(world.getPlayers())) {
+        for (ServerPlayerEntity player : new ArrayList<>(world.getPlayers())) {
             this.leaveSafari(player);
         }
 
-        if(ModConfigs.SAFARI.isResetWorld()) {
+        if (ModConfigs.SAFARI.isResetWorld()) {
             Path folder = world.getServer().session.getWorldDirectory(world.getRegistryKey());
             server.worlds.remove(StarAcademyMod.SAFARI);
 
@@ -146,13 +165,16 @@ public class SafariData extends WorldData {
                     }
 
                     public FileVisitResult postVisitDirectory(Path path, IOException exception) throws IOException {
-                        if(exception != null) throw exception;
-                        if(path.equals(folder)) Files.deleteIfExists(path);
+                        if (exception != null)
+                            throw exception;
+                        if (path.equals(folder))
+                            Files.deleteIfExists(path);
                         Files.delete(path);
                         return FileVisitResult.CONTINUE;
                     }
                 });
-            } catch(IOException ignored) { }
+            } catch (IOException ignored) {
+            }
 
             UnmodifiableLevelProperties worldProperties = new UnmodifiableLevelProperties(server.getSaveProperties(),
                     server.getSaveProperties().getMainWorldProperties());
@@ -160,9 +182,11 @@ public class SafariData extends WorldData {
             DimensionOptions options = server.getCombinedDynamicRegistries().getCombinedRegistryManager()
                     .get(RegistryKeys.DIMENSION).get(StarAcademyMod.SAFARI.getValue());
 
-            ServerWorld newWorld = new ServerWorld(server, Util.getMainWorkerExecutor(), server.session, worldProperties,
+            ServerWorld newWorld = new ServerWorld(server, Util.getMainWorkerExecutor(), server.session,
+                    worldProperties,
                     world.getRegistryKey(), options, new DummyWorldGenerationProgressListener(),
-                    server.getSaveProperties().isDebugWorld(), BiomeAccess.hashSeed(server.getSaveProperties().getGeneratorOptions().getSeed()),
+                    server.getSaveProperties().isDebugWorld(),
+                    BiomeAccess.hashSeed(server.getSaveProperties().getGeneratorOptions().getSeed()),
                     ImmutableList.of(), false, server.getOverworld().getRandomSequences());
 
             server.getOverworld().getWorldBorder().addListener(new WorldBorderSyncer(newWorld.getWorldBorder()));
@@ -173,13 +197,13 @@ public class SafariData extends WorldData {
 
         List<UUID> keys = new ArrayList<>(this.entries.keySet());
 
-        for(UUID key : keys) {
+        for (UUID key : keys) {
             this.entries.compute(key, (k, v) -> {
                 this.markDirty();
                 Entry entry = new Entry();
                 entry.setTimeLeft(ModConfigs.SAFARI.getPlayerDuration());
 
-                if(v != null) {
+                if (v != null) {
                     entry.setLastState(v.getLastState());
                     entry.setUnlocked(v.isUnlocked());
                     entry.setPrompted(v.isPrompted());
@@ -197,31 +221,34 @@ public class SafariData extends WorldData {
     public void onTick(MinecraftServer server) {
         this.timeLeft = ModConfigs.SAFARI.getTimeLeft(this.lastUpdated) / 50;
 
-        if(this.timeLeft <= 0) {
+        if (this.timeLeft <= 0) {
             this.lastUpdated = System.currentTimeMillis();
             this.onStart(server);
         }
 
-        for(ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
-           this.getOrCreate(player.getUuid());
+        for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
+            this.getOrCreate(player.getUuid());
 
-           this.get(player.getUuid()).ifPresent(entry -> {
-               if(player.getWorld().getRegistryKey() == StarAcademyMod.SAFARI) {
-                   if(entry.getTimeLeft() <= 0 || !entry.isUnlocked() || player.getY() < player.getWorld().getBottomY()) {
-                       player.fallDistance = 0.0F;
-                       this.leaveSafari(player);
-                   }
-               }
-           });
+            this.get(player.getUuid()).ifPresent(entry -> {
+                if (player.getWorld().getRegistryKey() == StarAcademyMod.SAFARI) {
+                    if (entry.getTimeLeft() <= 0 || !entry.isUnlocked()
+                            || player.getY() < player.getWorld().getBottomY()) {
+                        player.fallDistance = 0.0F;
+                        this.leaveSafari(player);
+                    }
+                }
+            });
         }
 
         this.portals.forEach((key, positions) -> {
             ServerWorld world = server.getWorld(key);
-            if(world == null) return;
+            if (world == null)
+                return;
 
             positions.removeIf(pos -> {
                 Chunk chunk = world.getChunk(pos.getX() >> 4, pos.getZ() >> 4, ChunkStatus.FULL, false);
-                if(chunk == null) return false;
+                if (chunk == null)
+                    return false;
                 return !(world.getBlockEntity(pos) instanceof SafariPortalBlockEntity);
             });
         });
@@ -230,10 +257,11 @@ public class SafariData extends WorldData {
 
         this.entries.forEach((uuid, entry) -> {
             ServerPlayerEntity player = server.getPlayerManager().getPlayer(uuid);
-            if(player == null) return;
+            if (player == null)
+                return;
 
-            if(player.getWorld().getRegistryKey() == StarAcademyMod.SAFARI) {
-                if(entry.getBallsGiven() < ModConfigs.SAFARI.getProvidedSafariBalls()) {
+            if (player.getWorld().getRegistryKey() == StarAcademyMod.SAFARI) {
+                if (entry.getBallsGiven() < ModConfigs.SAFARI.getProvidedSafariBalls()) {
                     int missing = ModConfigs.SAFARI.getProvidedSafariBalls() - entry.getBallsGiven();
                     ItemStack stack = new ItemStack(CobblemonItems.SAFARI_BALL, missing);
                     player.getInventory().insertStack(stack);
@@ -241,7 +269,7 @@ public class SafariData extends WorldData {
                     dirty.add(uuid);
                 }
 
-                if(entry.getTimeLeft() > 0) {
+                if (entry.getTimeLeft() > 0) {
                     entry.setTimeLeft(entry.getTimeLeft() - 1);
                     entry.setTimeLeft(Math.min(entry.getTimeLeft(), this.timeLeft));
                     dirty.add(uuid);
@@ -252,13 +280,13 @@ public class SafariData extends WorldData {
             double nearestDistance = Double.MAX_VALUE;
             Set<BlockPos> positions = this.portals.getOrDefault(player.getWorld().getRegistryKey(), new HashSet<>());
 
-            for(BlockPos position : positions) {
+            for (BlockPos position : positions) {
                 double dx = player.getCameraPosVec(1.0F).x - position.getX() + 0.5D;
                 double dy = player.getCameraPosVec(1.0F).y - position.getY() + 0.5D;
                 double dz = player.getCameraPosVec(1.0F).z - position.getZ() + 0.5D;
                 double distance = dx * dx + dy * dy + dz * dz;
 
-                if(distance < nearestDistance) {
+                if (distance < nearestDistance) {
                     nearestPortal = position;
                     nearestDistance = distance;
                 }
@@ -268,16 +296,19 @@ public class SafariData extends WorldData {
             dirty.add(uuid);
         });
 
-        for(ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
-            if(dirty.contains(player.getUuid())) {
-                //NetworkManager.sendToPlayer(player, new UpdateSafariS2CPacket(this.timeLeft, this.paused, player.getUuid(), this.entries.get(player.getUuid())));
+        for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
+            if (dirty.contains(player.getUuid())) {
+                NetworkManager.sendToPlayer(player, new UpdateSafariS2CPacket(this.timeLeft,
+                        this.paused, player.getUuid(), this.entries.get(player.getUuid())));
             } else {
-                //NetworkManager.sendToPlayer(player, new UpdateSafariS2CPacket(this.timeLeft, this.paused, new HashMap<>()));
+                NetworkManager.sendToPlayer(player, new UpdateSafariS2CPacket(this.timeLeft,
+                        this.paused, new HashMap<>()));
             }
         }
 
-        if(this.lastConfig != ModConfigs.SAFARI) {
-            NetworkManager.sendToPlayers(server.getPlayerManager().getPlayerList(), new UpdateSafariConfigS2CPacket(ModConfigs.SAFARI.getTickets()));
+        if (this.lastConfig != ModConfigs.SAFARI) {
+            NetworkManager.sendToPlayers(server.getPlayerManager().getPlayerList(),
+                    new UpdateSafariConfigS2CPacket(ModConfigs.SAFARI.getTickets()));
             this.lastConfig = ModConfigs.SAFARI;
         }
 
@@ -292,14 +323,18 @@ public class SafariData extends WorldData {
             this.portals.forEach((key, positions) -> {
                 NbtList entry = new NbtList();
 
-                for(BlockPos position : positions) {
-                   Adapters.BLOCK_POS.writeNbt(position).ifPresent(entry::add);
+                for (BlockPos position : positions) {
+                    Adapters.BLOCK_POS.writeNbt(position).ifPresent(entry::add);
                 }
 
                 portals.put(key.getValue().toString(), entry);
             });
 
             nbt.put("portals", portals);
+
+            if (this.spawnPoint != null) {
+                this.spawnPoint.writeNbt().ifPresent(tag -> nbt.put("spawnPoint", tag));
+            }
 
             NbtCompound entries = new NbtCompound();
 
@@ -318,22 +353,29 @@ public class SafariData extends WorldData {
     public void readNbt(NbtCompound nbt) {
         this.portals.clear();
 
-        for(String s : nbt.getCompound("portals").getKeys()) {
+        for (String s : nbt.getCompound("portals").getKeys()) {
             RegistryKey<World> key = RegistryKey.of(RegistryKeys.WORLD, Identifier.of(s));
             Set<BlockPos> positions = new HashSet<>();
 
-            if(nbt.getCompound("portals").get(s) instanceof NbtList entry) {
-                for(NbtElement child : entry) {
-                   Adapters.BLOCK_POS.readNbt(child).ifPresent(positions::add);
+            if (nbt.getCompound("portals").get(s) instanceof NbtList entry) {
+                for (NbtElement child : entry) {
+                    Adapters.BLOCK_POS.readNbt(child).ifPresent(positions::add);
                 }
             }
 
             this.portals.put(key, positions);
         }
 
+        if (nbt.contains("spawnPoint")) {
+            this.spawnPoint = new EntityState();
+            this.spawnPoint.readNbt(nbt.getCompound("spawnPoint"));
+        } else {
+            this.spawnPoint = null;
+        }
+
         this.entries.clear();
 
-        for(String key : nbt.getCompound("entries").getKeys()) {
+        for (String key : nbt.getCompound("entries").getKeys()) {
             Entry entry = new Entry();
             entry.readNbt(nbt.getCompound("entries").getCompound(key));
             this.entries.put(UUID.fromString(key), entry);
@@ -415,7 +457,7 @@ public class SafariData extends WorldData {
         public void writeBits(BitBuffer buffer) {
             Adapters.BOOLEAN.writeBits(this.lastState != null, buffer);
 
-            if(this.lastState != null) {
+            if (this.lastState != null) {
                 this.lastState.writeBits(buffer);
             }
 
@@ -428,7 +470,7 @@ public class SafariData extends WorldData {
 
         @Override
         public void readBits(BitBuffer buffer) {
-            if(Adapters.BOOLEAN.readBits(buffer).orElseThrow()) {
+            if (Adapters.BOOLEAN.readBits(buffer).orElseThrow()) {
                 this.lastState = new EntityState();
                 this.lastState.readBits(buffer);
             } else {
@@ -445,7 +487,7 @@ public class SafariData extends WorldData {
         @Override
         public Optional<NbtCompound> writeNbt() {
             return Optional.of(new NbtCompound()).map(nbt -> {
-                if(this.lastState != null) {
+                if (this.lastState != null) {
                     this.lastState.writeNbt().ifPresent(tag -> nbt.put("lastState", tag));
                 }
 
@@ -460,7 +502,7 @@ public class SafariData extends WorldData {
 
         @Override
         public void readNbt(NbtCompound nbt) {
-            if(nbt.contains("lastState")) {
+            if (nbt.contains("lastState")) {
                 this.lastState = new EntityState();
                 this.lastState.readNbt(nbt.getCompound("lastState"));
             } else {

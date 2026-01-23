@@ -51,7 +51,7 @@ public class SafariPortalBlock extends Block implements BlockEntityProvider, Por
 
     @Override
     public VoxelShape getOutlineShape(BlockState state, BlockView world, BlockPos pos, ShapeContext context) {
-        return switch(state.get(AXIS)) {
+        return switch (state.get(AXIS)) {
             case Z -> Z_SHAPE;
             default -> X_SHAPE;
         };
@@ -59,7 +59,7 @@ public class SafariPortalBlock extends Block implements BlockEntityProvider, Por
 
     @Override
     public BlockState getStateForNeighborUpdate(BlockState state, Direction direction, BlockState neighborState,
-                                                WorldAccess world, BlockPos pos, BlockPos neighborPos) {
+            WorldAccess world, BlockPos pos, BlockPos neighborPos) {
         Direction.Axis axis = direction.getAxis();
         Direction.Axis axis2 = state.get(AXIS);
         boolean bl = axis2 != axis && axis.isHorizontal();
@@ -70,17 +70,18 @@ public class SafariPortalBlock extends Block implements BlockEntityProvider, Por
 
     @Override
     public void onEntityCollision(BlockState state, World world, BlockPos pos, Entity entity) {
-        if(!(world instanceof ServerWorld)) {
+        if (!(world instanceof ServerWorld)) {
             return;
         }
 
         ProxyEntity proxy = ProxyEntity.of(entity).orElseThrow();
 
-        if(entity instanceof ServerPlayerEntity player && entity.canUsePortals(false) && !proxy.hasSafariPortalCooldown()
+        if (entity instanceof ServerPlayerEntity player && entity.canUsePortals(false)
+                && !proxy.hasSafariPortalCooldown()
                 && !proxy.isInSafariPortal() && VoxelShapes.matchesAnywhere(
-                VoxelShapes.cuboid(entity.getBoundingBox().offset(-pos.getX(), -pos.getY(), -pos.getZ())),
-                state.getOutlineShape(world, pos),
-                BooleanBiFunction.AND)) {
+                        VoxelShapes.cuboid(entity.getBoundingBox().offset(-pos.getX(), -pos.getY(), -pos.getZ())),
+                        state.getOutlineShape(world, pos),
+                        BooleanBiFunction.AND)) {
             proxy.setInSafariPortal(true);
             entity.tryUsePortal(this, pos);
         }
@@ -88,21 +89,21 @@ public class SafariPortalBlock extends Block implements BlockEntityProvider, Por
 
     @Override
     public void randomDisplayTick(BlockState state, World world, BlockPos pos, Random random) {
-        for(int i = 0; i < 4; i++) {
-            double posX = (double)pos.getX() + random.nextDouble();
-            double posY = (double)pos.getY() + random.nextDouble();
-            double posZ = (double)pos.getZ() + random.nextDouble();
-            double velocityX = ((double)random.nextFloat() - 0.5) * 0.5;
-            double velocityY = ((double)random.nextFloat() - 0.5) * 0.5;
-            double velocityZ = ((double)random.nextFloat() - 0.5) * 0.5;
+        for (int i = 0; i < 4; i++) {
+            double posX = (double) pos.getX() + random.nextDouble();
+            double posY = (double) pos.getY() + random.nextDouble();
+            double posZ = (double) pos.getZ() + random.nextDouble();
+            double velocityX = ((double) random.nextFloat() - 0.5) * 0.5;
+            double velocityY = ((double) random.nextFloat() - 0.5) * 0.5;
+            double velocityZ = ((double) random.nextFloat() - 0.5) * 0.5;
             int direction = random.nextInt(2) * 2 - 1;
 
-            if(!world.getBlockState(pos.west()).isOf(this) && !world.getBlockState(pos.east()).isOf(this)) {
-                posX = (double)pos.getX() + 0.5 + 0.25 * (double)direction;
-                velocityX = random.nextFloat() * 2.0F * (float)direction;
+            if (!world.getBlockState(pos.west()).isOf(this) && !world.getBlockState(pos.east()).isOf(this)) {
+                posX = (double) pos.getX() + 0.5 + 0.25 * (double) direction;
+                velocityX = random.nextFloat() * 2.0F * (float) direction;
             } else {
-                posZ = (double)pos.getZ() + 0.5 + 0.25 * (double)direction;
-                velocityZ = random.nextFloat() * 2.0F * (float)direction;
+                posZ = (double) pos.getZ() + 0.5 + 0.25 * (double) direction;
+                velocityZ = random.nextFloat() * 2.0F * (float) direction;
             }
 
             world.addParticle(ParticleTypes.ASH, posX, posY, posZ, velocityX, velocityY, velocityZ);
@@ -116,8 +117,8 @@ public class SafariPortalBlock extends Block implements BlockEntityProvider, Por
 
     @Override
     public BlockState rotate(BlockState state, BlockRotation rotation) {
-        return switch(rotation) {
-            case COUNTERCLOCKWISE_90, CLOCKWISE_90 -> switch(state.get(AXIS)) {
+        return switch (rotation) {
+            case COUNTERCLOCKWISE_90, CLOCKWISE_90 -> switch (state.get(AXIS)) {
                 case Z -> state.with(AXIS, Direction.Axis.X);
                 case X -> state.with(AXIS, Direction.Axis.Z);
                 default -> state;
@@ -137,9 +138,10 @@ public class SafariPortalBlock extends Block implements BlockEntityProvider, Por
     }
 
     @Override
-    public <T extends BlockEntity> BlockEntityTicker<T> getTicker(World world, BlockState state, BlockEntityType<T> type) {
+    public <T extends BlockEntity> BlockEntityTicker<T> getTicker(World world, BlockState state,
+            BlockEntityType<T> type) {
         return (world1, pos, state1, blockEntity) -> {
-            if(blockEntity instanceof SafariPortalBlockEntity portal) {
+            if (blockEntity instanceof SafariPortalBlockEntity portal) {
                 portal.tick();
             }
         };
@@ -147,16 +149,16 @@ public class SafariPortalBlock extends Block implements BlockEntityProvider, Por
 
     @Override
     public TeleportTarget createTeleportTarget(ServerWorld world, Entity entity, BlockPos pos) {
-        if(!(entity instanceof ServerPlayerEntity player)) {
+        if (!(entity instanceof ServerPlayerEntity player)) {
             return null;
         }
 
         SafariData data = ModWorldData.SAFARI.getGlobal(world);
 
-        if(world.getRegistryKey() == StarAcademyMod.SAFARI) {
+        if (world.getRegistryKey() == StarAcademyMod.SAFARI) {
             SafariData.Entry entry = data.get(player.getUuid()).orElse(null);
 
-            if(entry == null || entry.getLastState() == null) {
+            if (entry == null || entry.getLastState() == null) {
                 return null;
             }
 
@@ -171,33 +173,47 @@ public class SafariPortalBlock extends Block implements BlockEntityProvider, Por
             player.setPortalCooldown(20);
 
             return new TeleportTarget(destination, state.getPos(), Vec3d.ZERO,
-                    state.getYaw(), state.getPitch(), post -> {});
+                    state.getYaw(), state.getPitch(), post -> {
+                    });
         } else {
             SafariData.Entry entry = data.getOrCreate(player.getUuid());
 
-            if(!entry.isUnlocked()) {
+            if (!entry.isUnlocked()) {
                 player.sendMessage(Text.empty()
                         .append(Text.translatable("text.academy.safari.enter_locked")
-                                .formatted(Formatting.RED)), true);
+                                .formatted(Formatting.RED)),
+                        true);
                 return null;
-            } else if(entry.getTimeLeft() <= 0) {
+            } else if (entry.getTimeLeft() <= 0) {
                 player.sendMessage(Text.empty()
                         .append(Text.translatable("text.academy.safari.enter_no_time")
-                                .formatted(Formatting.RED)), true);
+                                .formatted(Formatting.RED)),
+                        true);
                 return null;
-            } else if(data.isPaused()) {
+            } else if (data.isPaused()) {
                 player.sendMessage(Text.empty()
                         .append(Text.translatable("text.academy.safari.enter_paused")
-                                .formatted(Formatting.RED)), true);
+                                .formatted(Formatting.RED)),
+                        true);
                 return null;
             }
 
             data.getOrCreate(player.getUuid()).setLastState(new EntityState(player));
-            BlockPos target = ModConfigs.SAFARI.getPlacementOffset().add(ModConfigs.SAFARI.getRelativeSpawnPosition());
             ServerWorld destination = world.getServer().getWorld(StarAcademyMod.SAFARI);
 
-            return new TeleportTarget(destination, new Vec3d(target.getX() + 0.5D, target.getY(), target.getZ() + 0.5D), Vec3d.ZERO,
-                    ModConfigs.SAFARI.getSpawnYaw(), ModConfigs.SAFARI.getSpawnPitch(), post -> {});
+            if (data.getSpawnPoint() != null) {
+                EntityState spawn = data.getSpawnPoint();
+                return new TeleportTarget(destination, spawn.getPos(), Vec3d.ZERO,
+                        spawn.getYaw(), spawn.getPitch(), post -> {
+                        });
+            }
+
+            BlockPos target = ModConfigs.SAFARI.getPlacementOffset().add(ModConfigs.SAFARI.getRelativeSpawnPosition());
+
+            return new TeleportTarget(destination, new Vec3d(target.getX() + 0.5D, target.getY(), target.getZ() + 0.5D),
+                    Vec3d.ZERO,
+                    ModConfigs.SAFARI.getSpawnYaw(), ModConfigs.SAFARI.getSpawnPitch(), post -> {
+                    });
         }
     }
 
