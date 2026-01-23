@@ -49,11 +49,11 @@ public class UpdateSafariS2CPacket extends ModPacket<ClientPlayNetworkHandler> {
 
         Map<UUID, Entry> entries = SafariData.CLIENT.getEntries();
 
-        if(this.entries == null) {
+        if (this.entries == null) {
             entries.clear();
         } else {
             this.entries.forEach((uuid, profile) -> {
-                if(profile == null) {
+                if (profile == null) {
                     entries.remove(uuid);
                 } else {
                     entries.put(uuid, profile);
@@ -69,7 +69,7 @@ public class UpdateSafariS2CPacket extends ModPacket<ClientPlayNetworkHandler> {
 
         Adapters.BOOLEAN.writeBits(this.entries == null, buffer);
 
-        if(this.entries != null) {
+        if (this.entries != null) {
             Adapters.INT_SEGMENTED_3.writeBits(this.entries.size(), buffer);
 
             this.entries.forEach((uuid, entry) -> {
@@ -84,16 +84,15 @@ public class UpdateSafariS2CPacket extends ModPacket<ClientPlayNetworkHandler> {
         this.timeLeft = Adapters.LONG.readBits(buffer).orElseThrow();
         this.paused = Adapters.BOOLEAN.readBits(buffer).orElseThrow();
 
-        if(Adapters.BOOLEAN.readBits(buffer).orElseThrow()) {
+        if (Adapters.BOOLEAN.readBits(buffer).orElseThrow()) {
             this.entries = null;
         } else {
             this.entries = new HashMap<>();
             int size = Adapters.INT_SEGMENTED_3.readBits(buffer).orElseThrow();
-            UUID uuid = Adapters.UUID.readBits(buffer).orElseThrow();
-            Entry entry = new Entry();
-            entry.readBits(buffer);
-
-            for(int i = 0; i < size; i++) {
+            for (int i = 0; i < size; i++) {
+                UUID uuid = Adapters.UUID.readBits(buffer).orElseThrow();
+                Entry entry = new Entry();
+                entry.readBits(buffer);
                 this.entries.put(uuid, entry);
             }
         }
