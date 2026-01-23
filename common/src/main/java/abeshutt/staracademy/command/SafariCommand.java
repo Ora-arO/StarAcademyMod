@@ -39,6 +39,10 @@ public class SafariCommand extends Command {
                                 .then(argument("players", EntityArgumentType.players())
                                         .then(argument("time", TimeArgumentType.time(Integer.MIN_VALUE))
                                                 .executes(this::onAddTime))))
+                        .then(literal("set_time")
+                                .then(argument("players", EntityArgumentType.players())
+                                        .then(argument("time", TimeArgumentType.time(0))
+                                                .executes(this::onSetTime))))
                         .then(literal("setspawn")
                                 .executes(this::onSetSpawn))));
     }
@@ -57,6 +61,42 @@ public class SafariCommand extends Command {
         }
 
         return 0;
+    }
+
+    private int onSetTime(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+        Collection<ServerPlayerEntity> players = EntityArgumentType.getPlayers(context, "players");
+        long time = context.getArgument("time", Integer.class);
+
+        SafariData data = ModWorldData.SAFARI.getGlobal(context.getSource().getServer());
+
+        for (ServerPlayerEntity player : players) {
+            SafariData.Entry entry = data.getOrCreate(player.getUuid());
+            entry.setTimeLeft(time);
+
+            context.getSource().sendFeedback(() -> Text.empty()
+                    .append(Text.literal("Set Safari time for ").formatted(Formatting.GREEN))
+                    .append(player.getName())
+                    .append(Text.literal(" to ").formatted(Formatting.GREEN))
+                    .append(Text.literal(formatTimeString(time)).formatted(Formatting.WHITE))
+                    .append(Text.literal(".").formatted(Formatting.GREEN)), true);
+
+            // player.sendMessage(Text.empty()
+            // .append(Text.literal("Your Safari time has been set to
+            // ").formatted(Formatting.GREEN))
+            // .append(Text.literal(formatTimeString(time)).formatted(Formatting.WHITE))
+            // .append(Text.literal(".").formatted(Formatting.GREEN)), false);
+        }
+
+        return 0;
+    }
+
+    private String formatTimeString(long remainingTicks) {
+        long seconds = (remainingTicks / 20) % 60;
+        long minutes = ((remainingTicks / 20) / 60) % 60;
+        long hours = ((remainingTicks / 20) / 60) / 60;
+        return hours > 0
+                ? String.format("%02d:%02d:%02d", hours, minutes, seconds)
+                : String.format("%02d:%02d", minutes, seconds);
     }
 
     private int onRestart(CommandContext<ServerCommandSource> context) {
