@@ -178,13 +178,7 @@ public class SafariPortalBlock extends Block implements BlockEntityProvider, Por
         } else {
             SafariData.Entry entry = data.getOrCreate(player.getUuid());
 
-            if (!entry.isUnlocked()) {
-                player.sendMessage(Text.empty()
-                        .append(Text.translatable("text.academy.safari.enter_locked")
-                                .formatted(Formatting.RED)),
-                        true);
-                return null;
-            } else if (entry.getTimeLeft() <= 0) {
+            if (entry.getTimeLeft() <= 0) {
                 player.sendMessage(Text.empty()
                         .append(Text.translatable("text.academy.safari.enter_no_time")
                                 .formatted(Formatting.RED)),

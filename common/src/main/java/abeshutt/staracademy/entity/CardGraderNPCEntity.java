@@ -7,10 +7,7 @@ import abeshutt.staracademy.item.CardItem;
 import abeshutt.staracademy.math.random.JavaRandom;
 import abeshutt.staracademy.math.random.RandomSource;
 import abeshutt.staracademy.world.data.save.CardGradingData;
-import com.glisco.numismaticoverhaul.ModComponents;
-import com.glisco.numismaticoverhaul.currency.CurrencyComponent;
 import dev.architectury.hooks.item.ItemStackHooks;
-import dev.architectury.platform.Platform;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.MinecraftClient;
@@ -135,26 +132,10 @@ public class CardGraderNPCEntity extends HumanEntity {
                             .formatted(Formatting.GRAY)));
                 }
             } else if(stack.getItem() instanceof CardItem && CardItem.get(stack).map(card -> card.getGrade() == 0).orElse(false)) {
-                if(Platform.isModLoaded("numismatic-overhaul")) {
-                    CurrencyComponent purse = ModComponents.CURRENCY.get(player);
-
-                    if(purse.getValue() < ModConfigs.NPC.getGradingCurrencyCost()) {
-                        player.sendMessage(Text.empty().append(Text.translatable(INITIAL_BROKE.apply(random))
-                                .formatted(Formatting.GRAY)));
-                    } else {
-                        purse.pushTransaction(-ModConfigs.NPC.getGradingCurrencyCost());
-                        purse.commitTransactions();
-                        data.add(player.getUuid(), stack.copy());
-                        player.setStackInHand(hand, ItemStack.EMPTY);
-                        player.sendMessage(Text.empty().append(Text.translatable(INITIAL_CARD.apply(random))
-                                .formatted(Formatting.GRAY)));
-                    }
-                } else {
-                    data.add(player.getUuid(), stack.copy());
-                    player.setStackInHand(hand, ItemStack.EMPTY);
-                    player.sendMessage(Text.empty().append(Text.translatable(INITIAL_CARD.apply(random))
-                            .formatted(Formatting.GRAY)));
-                }
+                data.add(player.getUuid(), stack.copy());
+                player.setStackInHand(hand, ItemStack.EMPTY);
+                player.sendMessage(Text.empty().append(Text.translatable(INITIAL_CARD.apply(random))
+                        .formatted(Formatting.GRAY)));
             } else {
                 player.sendMessage(Text.empty().append(Text.translatable(INITIAL_NO_CARD.apply(random))
                         .formatted(Formatting.GRAY)));
@@ -183,12 +164,6 @@ public class CardGraderNPCEntity extends HumanEntity {
             "text.academy.grader.initial_card_1",
             "text.academy.grader.initial_card_2",
             "text.academy.grader.initial_card_3"
-    );
-
-    public static final Function<RandomSource, String> INITIAL_BROKE = create(
-            "text.academy.grader.initial_broke_1",
-            "text.academy.grader.initial_broke_2",
-            "text.academy.grader.initial_broke_3"
     );
 
     public static final Function<RandomSource, String> REQUEST_IMPATIENT = create(

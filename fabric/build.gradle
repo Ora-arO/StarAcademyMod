@@ -44,7 +44,6 @@ dependencies {
 
     modImplementation("maven.modrinth:jei:19.25.1.332")
 
-    //modImplementation("maven.modrinth:numismatic-overhaul:0.3.4+1.21")
     //modImplementation("io.wispforest:owo-sentinel:0.12.15.4+1.21")
     //modImplementation("io.wispforest:owo-lib:0.12.15.4+1.21")
 

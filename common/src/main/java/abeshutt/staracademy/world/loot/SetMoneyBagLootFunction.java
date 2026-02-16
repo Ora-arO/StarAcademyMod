@@ -2,11 +2,7 @@ package abeshutt.staracademy.world.loot;
 
 import abeshutt.staracademy.data.adapter.Adapters;
 import abeshutt.staracademy.init.ModLootFunctionTypes;
-import abeshutt.staracademy.math.random.JavaRandom;
 import abeshutt.staracademy.math.roll.IntRoll;
-import com.glisco.numismaticoverhaul.NumismaticOverhaul;
-import com.glisco.numismaticoverhaul.currency.CurrencyResolver;
-import com.glisco.numismaticoverhaul.item.MoneyBagComponent;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.item.ItemStack;
@@ -61,19 +57,7 @@ public class SetMoneyBagLootFunction implements LootFunction {
 
     @Override
     public ItemStack apply(ItemStack stack, LootContext context) {
-        JavaRandom random = JavaRandom.ofInternal(context.getRandom().nextLong());
-
-        long[] values = {
-                this.bronze == null ? 0 : this.bronze.get(random),
-                this.silver == null ? 0 : this.silver.get(random),
-                this.gold == null ? 0 : this.gold.get(random)
-        };
-
-        if(this.combine) {
-            values = CurrencyResolver.splitValues(CurrencyResolver.combineValues(values));
-        }
-
-        stack.set(NumismaticOverhaul.MONEY_BAG_COMPONENT, MoneyBagComponent.of(values));
+        // Keep the loot function id/codec for datapack compatibility even when Numismatic is absent.
         return stack;
     }
 

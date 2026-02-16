@@ -1,11 +1,8 @@
 package abeshutt.staracademy.entity;
 
 import abeshutt.staracademy.StarAcademyMod;
-import abeshutt.staracademy.init.ModConfigs;
 import abeshutt.staracademy.init.ModWorldData;
 import abeshutt.staracademy.world.data.save.SafariData;
-import com.glisco.numismaticoverhaul.ModComponents;
-import com.glisco.numismaticoverhaul.currency.CurrencyComponent;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.ai.goal.LookAroundGoal;
 import net.minecraft.entity.ai.goal.LookAtEntityGoal;
@@ -57,33 +54,6 @@ public class SafariNPCEntity extends HumanEntity {
     protected ActionResult interactMob(PlayerEntity player, Hand hand) {
         if(!player.getWorld().isClient() && hand == Hand.MAIN_HAND) {
             SafariData data = ModWorldData.SAFARI.getGlobal(player.getWorld());
-            SafariData.Entry entry = data.getOrCreate(player.getUuid());
-
-            if(!entry.isUnlocked()) {
-                CurrencyComponent purse = ModComponents.CURRENCY.get(player);
-
-                if(purse.getValue() < ModConfigs.NPC.getGradingCurrencyCost()) {
-                    if(!entry.isPrompted()) {
-                        player.sendMessage(Text.empty()
-                                .append(Text.translatable("text.academy.safari.initial_locked").formatted(Formatting.GRAY)));
-                        entry.setPrompted(true);
-                        data.markDirty();
-                    } else {
-                        player.sendMessage(Text.empty()
-                                .append(Text.translatable("text.academy.safari.unlock_broke").formatted(Formatting.GRAY)));
-                    }
-                } else {
-                    purse.pushTransaction(-ModConfigs.NPC.getGradingCurrencyCost());
-                    purse.commitTransactions();
-                    player.sendMessage(Text.empty().append(Text.translatable("text.academy.safari.unlock_complete")
-                            .formatted(Formatting.GRAY)));
-                    entry.setUnlocked(true);
-                    entry.setPrompted(true);
-                    data.markDirty();
-                }
-
-                return ActionResult.SUCCESS;
-            }
 
             if(data.isPaused()) {
                 player.sendMessage(Text.empty()

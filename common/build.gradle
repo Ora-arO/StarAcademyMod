@@ -24,8 +24,7 @@ dependencies {
 
     modCompileOnly("maven.modrinth:jei:19.25.1.332")
 
-    modCompileOnly("maven.modrinth:numismatic-overhaul:0.3.4+1.21")
-    modCompileOnly(include("io.wispforest:owo-sentinel:0.12.15.4+1.21"))
+    modCompileOnly("io.wispforest:owo-sentinel:0.12.15.4+1.21")
     modCompileOnly(annotationProcessor("io.wispforest:owo-lib:0.12.15.4+1.21"))
 
     modCompileOnly("maven.modrinth:item-obliterator:3.1.1")

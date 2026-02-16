@@ -1,13 +1,8 @@
 package abeshutt.staracademy.config;
 
-import abeshutt.staracademy.StarAcademyMod;
-import abeshutt.staracademy.data.adapter.Adapters;
-import com.glisco.numismaticoverhaul.block.ShopOffer;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 import com.google.gson.annotations.Expose;
-import net.minecraft.item.ItemStack;
-import net.minecraft.registry.RegistryWrapper;
 
 import java.util.*;
 
@@ -18,25 +13,6 @@ public class ShopConfig extends FileConfig {
     @Override
     public String getPath() {
         return "shop";
-    }
-
-    public Optional<List<ShopOffer>> parseOffers(String id, RegistryWrapper.WrapperLookup registries) {
-        if(!this.offers.containsKey(id)) {
-            return Optional.empty();
-        }
-
-        List<ShopOffer> offers = new ArrayList<>();
-
-        for(JsonElement offer : this.offers.get(id)) {
-            Adapters.COMPOUND_NBT.readJson(offer).ifPresentOrElse(nbt -> {
-                ItemStack.fromNbt(registries, nbt.get("sell")).ifPresent(stack -> offers.add(new ShopOffer(stack,
-                        Adapters.LONG.readNbt(nbt.get("price")).orElse(1L))));
-            }, () -> {
-                StarAcademyMod.LOGGER.error("Failed to parse offer: {}", offer);
-            });
-        }
-
-        return Optional.of(offers);
     }
 
     @Override
