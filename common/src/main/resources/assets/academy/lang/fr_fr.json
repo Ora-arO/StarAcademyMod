@@ -18,6 +18,8 @@
   "item.academy.max_iv_fossil": "Fossile IV Max",
   "item.academy.shiny_fossil": "Fossile Chromatique",
   "item.academy.shiny_incense": "Encens Chromatique",
+  "item.academy.safari_ticket_base": "Billet de safari",
+  "item.academy.safari_ticket_base.tooltip": "Accorde 30:00 au Safari",
   "item.academy.strong_shiny_incense": "Encens Chromatique Puissant",
   "item.academy.uber_shiny_incense": "Encens Chromatique Ultime",
   "item.academy.outfit": "Tenue",

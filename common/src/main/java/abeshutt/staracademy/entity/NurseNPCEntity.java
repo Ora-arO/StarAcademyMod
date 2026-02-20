@@ -49,6 +49,7 @@ public class NurseNPCEntity extends HumanEntity {
     @Override
     public void tick() {
         this.setInvulnerable(true);
+        this.setNoGravity(true);
         super.tick();
     }
 

@@ -55,7 +55,6 @@
     "MixinSpeciesDexRecord",
     "MixinStructureTemplate",
     "MixinTeleportTarget",
-    "alphas.MixinAlphaSpawner",
     "bookshelf.MixinFabricMod",
     "cobblemon.MixinCobblemonTooltipGenerator",
     "cobblemon.MixinCodecUtils",
@@ -95,7 +94,8 @@
     "outbreaks.MixinPortalUtils",
     "shutters.MixinShutter",
     "ultrabeasts.MixinWormholeEntity",
-    "xercapaint.MixinRecipeFillPalette"
+    "xercapaint.MixinRecipeFillPalette",
+    "sophisticated.MixinHopperUpgradeWrapper"
   ],
   "injectors": {
     "defaultRequire": 1

@@ -62,6 +62,7 @@ public class PartnerNPCEntity extends HumanEntity {
     @Override
     public void tick() {
         this.setInvulnerable(true);
+        this.setNoGravity(true);
         this.setCustomNameVisible(false);
 
         if(!this.getWorld().isClient() && this.getServer() != null) {

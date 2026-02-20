@@ -20,5 +20,7 @@
   "entity.academy.partner_npc": "PNJ Partenaire",
   "entity.academy.safari_npc": "PNJ Safari",
   "entity.academy.nurse_npc": "PNJ Infirmière",
-  "stat_type.minecraft.custom": "Personnalisé"
+  "stat_type.minecraft.custom": "Personnalisé",
+  "item.academy.safari_ticket_base": "Billet de safari",
+  "item.academy.safari_ticket_base.tooltip": "Accorde 30:00 au Safari"
 }

@@ -47,6 +47,7 @@ public class SafariNPCEntity extends HumanEntity {
     @Override
     public void tick() {
         this.setInvulnerable(true);
+        this.setNoGravity(true);
         super.tick();
     }
 

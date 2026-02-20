@@ -62,6 +62,7 @@ public class CardGraderNPCEntity extends HumanEntity {
     @Override
     public void tick() {
         this.setInvulnerable(true);
+        this.setNoGravity(true);
 
         if(this.getWorld().isClient()) {
             this.equipCard();
